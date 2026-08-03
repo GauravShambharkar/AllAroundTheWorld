@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { fetchMusicBrainzGenres } from "@/lib/musicbrainz"
+import { ALL_MICROGENRES } from "@/data/all-microgenres"
 
 export interface GenreTrackInfo {
   title: string
@@ -79,7 +80,7 @@ export const useGenreStore = create<GenreStore>((set, get) => ({
   },
 
   playGenreTrack: async (genreName: string) => {
-    const cleanName = genreName.replace(/^\d+\.\s*/, "").trim()
+    const cleanName = genreName.replace(/^\d+(\.\d+)?\.\s*/, "").trim()
 
     if (get().playingGenre === cleanName && get().isPlaying) {
       set({ isPlaying: false })
@@ -92,8 +93,14 @@ export const useGenreStore = create<GenreStore>((set, get) => ({
       isPlaying: false,
     })
 
+    // Look up exact microgenre query from dataset
+    const matched = ALL_MICROGENRES.find(
+      (g) => g.name.toLowerCase() === cleanName.toLowerCase() || g.id.toLowerCase() === cleanName.toLowerCase()
+    )
+    const searchQuery = matched ? matched.query : cleanName
+
     try {
-      const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(cleanName)}`)
+      const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(searchQuery)}`)
       const data = await res.json()
       const tracks = data.tracks || []
 
