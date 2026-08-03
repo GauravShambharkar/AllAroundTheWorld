@@ -23,6 +23,8 @@ interface GenreStore {
   isLoadingAudio: boolean
   isMusicBrainzLoading: boolean
 
+  regionFilter: string
+  setRegionFilter: (filter: string) => void
   setActiveTab: (tab: "map" | "region") => void
   setSelectedRegion: (name: string, genres: string[], continent?: string) => void
   loadMusicBrainzGenres: (query?: string) => Promise<void>
@@ -42,6 +44,9 @@ export const useGenreStore = create<GenreStore>((set, get) => ({
   isPlaying: false,
   isLoadingAudio: false,
   isMusicBrainzLoading: false,
+  regionFilter: "",
+
+  setRegionFilter: (filter) => set({ regionFilter: filter }),
 
   setActiveTab: (tab) => set({ activeTab: tab }),
 

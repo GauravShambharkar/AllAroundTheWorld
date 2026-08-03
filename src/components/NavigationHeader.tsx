@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useGenreStore } from "@/store/useGenreStore";
+import { Search } from "lucide-react";
 
 export function NavigationHeader() {
   const activeTab = useGenreStore((state) => state.activeTab);
@@ -9,6 +10,8 @@ export function NavigationHeader() {
 
   const selectedGenre = useGenreStore((state) => state.selectedGenre);
   const selectedContinent = useGenreStore((state) => state.selectedContinent);
+  const regionFilter = useGenreStore((state) => state.regionFilter);
+  const setRegionFilter = useGenreStore((state) => state.setRegionFilter);
 
   return (
     <header className="w-full bg-white text-black select-none">
@@ -31,8 +34,8 @@ export function NavigationHeader() {
 
       {/* Tabs + List Of Genres Header Row (aligned on same baseline) */}
       <div className="flex gap-8">
-        {/* Left: Map / Region Tabs with dotted border */}
-        <div className="flex-1 border-b border-dotted border-[#545454] pb-4">
+        {/* Left: Map / Region Tabs with dotted border & Search Bar */}
+        <div className="flex-1 border-b border-dotted border-[#545454] pb-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6 text-[16px] tracking-[-0.8px]">
             <button
               type="button"
@@ -56,6 +59,18 @@ export function NavigationHeader() {
             >
               Region
             </button>
+          </div>
+
+          {/* Left-Side Header Search Bar */}
+          <div className="relative w-full max-w-[256px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input
+              type="text"
+              value={regionFilter}
+              onChange={(e) => setRegionFilter(e.target.value)}
+              placeholder="Filter regions & subgenres..."
+              className="w-full pl-8 pr-4 py-2 text-[12px] outline-none bg-transparent border-b border-neutral-200 focus:border-black transition-colors"
+            />
           </div>
         </div>
 

@@ -4,6 +4,8 @@ import { useEffect, useRef, useCallback, useState } from "react"
 import createGlobe from "cobe"
 import { useGenreStore } from "@/store/useGenreStore"
 
+import { getGenresForRegion } from "@/data/music-genres"
+
 export interface LocationSelection {
   name: string
   lat: number
@@ -16,14 +18,7 @@ const REGION_COORDINATE_MAP: LocationSelection[] = [
     name: "South Asia (India)",
     lat: 20.5937,
     lng: 78.9629,
-    genres: [
-      "1. Classical Raga",
-      "2. Qawwali",
-      "3. Bollywood & Filmi",
-      "4. Bhangra",
-      "5. Baul Folk",
-      "6. Indian Classical Fusion",
-    ],
+    genres: getGenresForRegion("South Asia"),
   },
   {
     name: "East Asia (Japan / Korea)",
@@ -151,6 +146,7 @@ interface GlobeProps {
 export function Globe({ className = "" }: GlobeProps) {
   const setSelectedRegion = useGenreStore((state) => state.setSelectedRegion)
 
+  const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pointerInteracting = useRef<{ x: number; y: number } | null>(null)
   const lastPointer = useRef<{ x: number; y: number; t: number } | null>(null)
@@ -162,12 +158,71 @@ export function Globe({ className = "" }: GlobeProps) {
   const currentPhiRef = useRef(0)
   const currentThetaRef = useRef(0.2)
 
-  const [selectedMarker, setSelectedMarker] = useState<LocationSelection>(REGION_COORDINATE_MAP[0])
+  const selectedMarkerRef = useRef<LocationSelection>(REGION_COORDINATE_MAP[0])
+  const [selectedMarker, setSelectedMarkerState] = useState<LocationSelection>(REGION_COORDINATE_MAP[0])
+  const [hoveredMarker, setHoveredMarker] = useState<LocationSelection | null>(null)
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
+
+  const setSelectedMarker = (marker: LocationSelection) => {
+    selectedMarkerRef.current = marker
+    setSelectedMarkerState(marker)
+  }
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     pointerInteracting.current = { x: e.clientX, y: e.clientY }
     if (canvasRef.current) canvasRef.current.style.cursor = "grabbing"
     isPausedRef.current = true
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.PointerEvent) => {
+    if (!canvasRef.current || pointerInteracting.current !== null) return
+
+    const rect = canvasRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const r = rect.width / 2
+    const cx = r
+    const cy = r
+    const dx = (x - cx) / r
+    const dy = (y - cy) / r
+
+    if (dx * dx + dy * dy <= 1) {
+      const dz = Math.sqrt(Math.max(0, 1 - dx * dx - dy * dy))
+      const phi = currentPhiRef.current
+      const cosPhi = Math.cos(phi)
+      const sinPhi = Math.sin(phi)
+
+      const wx = dx * cosPhi - dz * sinPhi
+      const wz = dx * sinPhi + dz * cosPhi
+      const wy = -dy
+
+      const clickedLat = Math.asin(Math.max(-1, Math.min(1, wy))) * (180 / Math.PI)
+      const clickedLng = Math.atan2(wz, wx) * (180 / Math.PI)
+
+      let closest: LocationSelection | null = null
+      let minDist = 400 // threshold
+
+      for (const rItem of REGION_COORDINATE_MAP) {
+        const dLat = rItem.lat - clickedLat
+        const dLng = rItem.lng - clickedLng
+        const dist = dLat * dLat + dLng * dLng
+        if (dist < minDist) {
+          minDist = dist
+          closest = rItem
+        }
+      }
+
+      if (closest && minDist < 350) {
+        setHoveredMarker(closest)
+        setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 12 })
+      } else {
+        setHoveredMarker(null)
+        setTooltipPos(null)
+      }
+    } else {
+      setHoveredMarker(null)
+      setTooltipPos(null)
+    }
   }, [])
 
   const handlePointerMove = useCallback((e: PointerEvent) => {
@@ -204,8 +259,7 @@ export function Globe({ className = "" }: GlobeProps) {
           const rect = canvasRef.current.getBoundingClientRect()
           const x = e.clientX - rect.left
           const y = e.clientY - rect.top
-          const width = rect.width
-          const r = width / 2
+          const r = rect.width / 2
           const cx = r
           const cy = r
           const dx = (x - cx) / r
@@ -272,22 +326,27 @@ export function Globe({ className = "" }: GlobeProps) {
     }
   }, [handlePointerMove, handlePointerUp])
 
+  // Single WebGL Instance Initialization & Responsive Scaling (NO re-destruction jumping)
   useEffect(() => {
-    if (!canvasRef.current) return
+    if (!canvasRef.current || !containerRef.current) return
     const canvas = canvasRef.current
+    const container = containerRef.current
     let globe: ReturnType<typeof createGlobe> | null = null
     let animationId: number
     let phi = 0
 
-    function init() {
-      const width = canvas.offsetWidth
-      if (width === 0 || globe) return
+    function initGlobe() {
+      const width = container.clientWidth || 480
+      if (width === 0) return
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      canvas.width = width * dpr
+      canvas.height = width * dpr
+
       globe = createGlobe(canvas, {
         devicePixelRatio: dpr,
-        width,
-        height: width,
+        width: width * dpr,
+        height: width * dpr,
         phi: 0,
         theta: 0.2,
         dark: 0,
@@ -297,17 +356,15 @@ export function Globe({ className = "" }: GlobeProps) {
         baseColor: [1, 1, 1],
         markerColor: [0, 0, 0],
         glowColor: [0.94, 0.93, 0.91],
-        markerElevation: 0.02,
-        markers: [
-          {
-            location: [selectedMarker.lat, selectedMarker.lng],
-            size: 0.04,
-          },
-        ],
+        markerElevation: 0.03,
+        markers: REGION_COORDINATE_MAP.map((r) => ({
+          location: [r.lat, r.lng],
+          size: selectedMarkerRef.current.name === r.name ? 0.06 : 0.035,
+        })),
         opacity: 0.95,
       })
 
-      function animate() {
+      function renderLoop() {
         if (!isPausedRef.current) {
           phi += 0.0006
           if (
@@ -338,53 +395,92 @@ export function Globe({ className = "" }: GlobeProps) {
           globe.update({
             phi: totalPhi,
             theta: totalTheta,
-            markers: [
-              {
-                location: [selectedMarker.lat, selectedMarker.lng],
-                size: 0.04,
-              },
-            ],
+            markers: REGION_COORDINATE_MAP.map((r) => ({
+              location: [r.lat, r.lng],
+              size: selectedMarkerRef.current.name === r.name ? 0.06 : 0.035,
+            })),
           })
         }
-        animationId = requestAnimationFrame(animate)
+        animationId = requestAnimationFrame(renderLoop)
       }
-      animate()
-      setTimeout(() => canvas && (canvas.style.opacity = "1"), 100)
+      renderLoop()
+      setTimeout(() => canvas && (canvas.style.opacity = "1"), 50)
     }
 
-    if (canvas.offsetWidth > 0) {
-      init()
-    } else {
-      const ro = new ResizeObserver((entries) => {
-        if (entries[0]?.contentRect.width > 0) {
-          ro.disconnect()
-          init()
+    // Responsive ResizeObserver for logical fluid scaling
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0 && globe) {
+          const newWidth = entry.contentRect.width
+          const dpr = Math.min(window.devicePixelRatio || 1, 2)
+          globe.update({
+            width: newWidth * dpr,
+            height: newWidth * dpr,
+          })
         }
-      })
-      ro.observe(canvas)
-    }
+      }
+    })
+
+    initGlobe()
+    resizeObserver.observe(container)
 
     return () => {
       if (animationId) cancelAnimationFrame(animationId)
+      resizeObserver.disconnect()
       if (globe) globe.destroy()
     }
-  }, [selectedMarker])
+  }, [])
 
   return (
-    <div className={`relative aspect-square select-none ${className}`}>
+    <div
+      ref={containerRef}
+      className={`relative w-full max-w-[480px] aspect-square flex items-center justify-center select-none ${className}`}
+    >
       <canvas
         ref={canvasRef}
         onPointerDown={handlePointerDown}
+        onPointerMove={handleMouseMove}
+        onPointerLeave={() => {
+          setHoveredMarker(null)
+          setTooltipPos(null)
+        }}
         style={{
           width: "100%",
           height: "100%",
           cursor: "grab",
           opacity: 0,
-          transition: "opacity 1.2s ease",
+          transition: "opacity 0.8s ease",
           borderRadius: "50%",
           touchAction: "none",
         }}
       />
+
+      {/* Region Hover Tooltip Card */}
+      {hoveredMarker && tooltipPos && (
+        <div
+          className="absolute z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full bg-black text-white px-3 py-1.5 rounded shadow-lg flex flex-col gap-0.5 whitespace-nowrap transition-all duration-150 border border-neutral-700"
+          style={{
+            left: `${tooltipPos.x}px`,
+            top: `${tooltipPos.y}px`,
+          }}
+        >
+          <div className="flex items-center gap-2 text-[11px] font-bold tracking-tight">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>{hoveredMarker.name}</span>
+          </div>
+          <div className="text-[10px] text-neutral-300 font-mono">
+            {hoveredMarker.genres.length} subgenres • Click to explore
+          </div>
+        </div>
+      )}
+
+      {/* Selected Active Marker Badge Overlay */}
+      {selectedMarker && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm border border-neutral-200 px-3 py-1 rounded-full text-[11px] font-medium text-black shadow-sm flex items-center gap-2 pointer-events-none">
+          <span className="w-2 h-2 rounded-full bg-black"></span>
+          <span>{selectedMarker.name}</span>
+        </div>
+      )}
     </div>
   )
 }

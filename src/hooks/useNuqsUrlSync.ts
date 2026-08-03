@@ -12,12 +12,15 @@ export function useNuqsUrlSync() {
   );
   const [genreParam, setGenreParam] = useQueryState("genre", parseAsString);
   const [continentParam, setContinentParam] = useQueryState("continent", parseAsString);
+  const [qParam, setQParam] = useQueryState("q", parseAsString);
 
   const activeTab = useGenreStore((state) => state.activeTab);
   const setActiveTab = useGenreStore((state) => state.setActiveTab);
   const selectedGenre = useGenreStore((state) => state.selectedGenre);
   const selectedContinent = useGenreStore((state) => state.selectedContinent);
   const setSelectedRegion = useGenreStore((state) => state.setSelectedRegion);
+  const regionFilter = useGenreStore((state) => state.regionFilter);
+  const setRegionFilter = useGenreStore((state) => state.setRegionFilter);
 
   const isHydratedRef = useRef(false);
 
@@ -28,6 +31,10 @@ export function useNuqsUrlSync() {
 
     if (tabParam && tabParam !== activeTab) {
       setActiveTab(tabParam);
+    }
+
+    if (qParam) {
+      setRegionFilter(qParam);
     }
 
     if (genreParam) {
@@ -51,5 +58,9 @@ export function useNuqsUrlSync() {
     if (selectedContinent !== continentParam) {
       setContinentParam(selectedContinent || null);
     }
-  }, [activeTab, selectedGenre, selectedContinent]);
+
+    if (regionFilter !== (qParam || "")) {
+      setQParam(regionFilter || null);
+    }
+  }, [activeTab, selectedGenre, selectedContinent, regionFilter]);
 }

@@ -31,8 +31,8 @@ function MainExplorer() {
 
   return (
     <div className="h-screen bg-white text-black flex flex-col items-center overflow-hidden">
-      {/* Full-width wrapper: 32px margin on all sides */}
-      <div className="w-full max-w-[1280px] px-8 pt-8 flex flex-col flex-1 overflow-hidden">
+      {/* Full-width wrapper: 32px top & bottom padding, 0px left/right */}
+      <div className="w-full max-w-[1280px] px-0 pt-8 pb-8 flex flex-col flex-1 overflow-hidden">
         {/* Header: logo + tabs row with "List Of Genres" */}
         <NavigationHeader />
 

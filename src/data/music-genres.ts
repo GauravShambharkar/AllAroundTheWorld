@@ -11,28 +11,36 @@ export interface RegionMarker {
 }
 
 function filterMicrogenres(categoryOrRegion: string): Microgenre[] {
-  const target = categoryOrRegion.toLowerCase().trim()
+  // Clean target (e.g., "South Asia (India / Pak / BD)" -> "south asia")
+  const rawTarget = categoryOrRegion.toLowerCase().trim()
+  const cleanTarget = rawTarget.replace(/\s*\([^)]*\)/g, "").trim()
 
   return ALL_MICROGENRES.filter((g) => {
     const reg = g.region.toLowerCase()
     const sub = g.subregion.toLowerCase()
     const cats = g.categories.map((c) => c.toLowerCase())
     const name = g.name.toLowerCase()
+    const country = (g.country || "").toLowerCase()
 
-    // 1. Exact subregion match (e.g., "east asia", "south asia", "west africa")
-    if (sub === target) return true
+    // 1. Match subregion (e.g., "south asia", "west africa", "east asia")
+    if (sub === cleanTarget || sub === rawTarget) return true
 
-    // 2. Exact category match (e.g., "classical", "opera", "reggae", "jazz")
-    if (cats.includes(target)) return true
+    // 2. Match categories array (e.g., "classical", "south asia", "reggae")
+    if (cats.includes(cleanTarget) || cats.includes(rawTarget)) return true
 
-    // 3. Exact region match (e.g., "africa", "asia", "europe", "caribbean")
-    if (reg === target) return true
+    // 3. Match continent region (e.g., "asia", "africa", "europe")
+    if (reg === cleanTarget || reg === rawTarget) return true
 
-    // 4. Name contains target keyword
-    if (name.includes(target)) return true
+    // 4. Keyword in subregion or category (e.g., "hindustani & carnatic" contains "classical")
+    if (cleanTarget.includes("classical") && (cats.includes("classical") || name.includes("classical") || name.includes("raga") || name.includes("carnatic"))) {
+      return true
+    }
 
-    // 5. Strict word boundary check (avoid "east asia" matching "asia")
-    if (target.length > 4 && sub.includes(target)) return true
+    // 5. Country or Name match
+    if (name.includes(cleanTarget) || country.includes(cleanTarget)) return true
+
+    // 6. Substring match for longer targets
+    if (cleanTarget.length > 3 && (sub.includes(cleanTarget) || reg.includes(cleanTarget))) return true
 
     return false
   })
