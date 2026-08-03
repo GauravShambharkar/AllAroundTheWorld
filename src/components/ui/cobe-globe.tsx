@@ -407,16 +407,20 @@ export function Globe({ className = "" }: GlobeProps) {
       setTimeout(() => canvas && (canvas.style.opacity = "1"), 50)
     }
 
-    // Responsive ResizeObserver for logical fluid scaling
+    // Responsive ResizeObserver for logical fluid scaling and tab-switch restoration
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        if (entry.contentRect.width > 0 && globe) {
-          const newWidth = entry.contentRect.width
-          const dpr = Math.min(window.devicePixelRatio || 1, 2)
-          globe.update({
-            width: newWidth * dpr,
-            height: newWidth * dpr,
-          })
+        if (entry.contentRect.width > 0) {
+          if (!globe) {
+            initGlobe()
+          } else {
+            const newWidth = entry.contentRect.width
+            const dpr = Math.min(window.devicePixelRatio || 1, 2)
+            globe.update({
+              width: newWidth * dpr,
+              height: newWidth * dpr,
+            })
+          }
         }
       }
     })

@@ -11,17 +11,21 @@ import {
   ExternalLink,
   Search,
   Compass,
+  ArrowLeft,
 } from "lucide-react";
 
 export function GenreListPanel() {
   const genreList = useGenreStore((state) => state.activeGenreList);
   const selectedRegionName = useGenreStore((state) => state.selectedRegionName);
+  const selectedGenre = useGenreStore((state) => state.selectedGenre);
+  const selectedContinent = useGenreStore((state) => state.selectedContinent);
   const playingGenre = useGenreStore((state) => state.playingGenre);
   const currentTrack = useGenreStore((state) => state.currentTrack);
   const isPlaying = useGenreStore((state) => state.isPlaying);
   const isLoadingAudio = useGenreStore((state) => state.isLoadingAudio);
   const playGenreTrack = useGenreStore((state) => state.playGenreTrack);
   const togglePlayPause = useGenreStore((state) => state.togglePlayPause);
+  const stopAudio = useGenreStore((state) => state.stopAudio);
   const setSelectedRegion = useGenreStore((state) => state.setSelectedRegion);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,8 +88,37 @@ export function GenreListPanel() {
 
   return (
     <div className="w-full h-full flex flex-col gap-4 select-none">
-      {/* Search Bar — right-aligned, reduced width */}
-      <div className="flex justify-end ">
+      {/* Mobile Top Control Row */}
+      {selectedGenre && (
+        <div className="md:hidden flex items-center justify-between gap-3 pb-2 border-b border-dotted border-[#545454]">
+          <button
+            type="button"
+            onClick={() => {
+              stopAudio();
+              setSelectedRegion("", [], "");
+            }}
+            className="flex items-center gap-1 text-[12px] font-medium text-neutral-600 hover:text-black shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Regions</span>
+          </button>
+
+          {/* Search Bar on Mobile */}
+          <div className="relative w-full max-w-[180px]">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search genres..."
+              className="w-full pl-7 pr-2 py-1 text-[11px] outline-none bg-transparent border-b border-neutral-200 focus:border-black transition-colors"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Search Bar — right-aligned */}
+      <div className="hidden md:flex justify-end">
         <div className="relative w-full max-w-[256px]">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input

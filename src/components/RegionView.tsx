@@ -245,7 +245,7 @@ export function RegionView() {
                         >
                           <span className="flex items-center gap-1.5 truncate">
                             <span>
-                              {idx + 1}. {item.label}
+                              • {item.label}
                             </span>
                           </span>
 
