@@ -44,7 +44,7 @@ export function NavigationHeader() {
             onClick={() => {
               setActiveTab("map");
             }}
-            className={`transition-colors ${
+            className={`transition-colors outline-none focus:outline-none focus-visible:outline-none ${
               activeTab === "map"
                 ? "text-black underline underline-offset-4 decoration-2 font-medium"
                 : "text-[#545454] hover:text-black font-normal"
@@ -59,7 +59,7 @@ export function NavigationHeader() {
               stopAudio();
               setSelectedRegion("", [], "");
             }}
-            className={`transition-colors ${
+            className={`transition-colors outline-none focus:outline-none focus-visible:outline-none ${
               activeTab === "region"
                 ? "text-black underline underline-offset-4 decoration-2 font-medium"
                 : "text-[#545454] hover:text-black font-normal"

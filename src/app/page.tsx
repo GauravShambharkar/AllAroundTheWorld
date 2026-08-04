@@ -42,30 +42,38 @@ function MainExplorer() {
     <div className="h-screen bg-white text-black flex flex-col items-center overflow-hidden">
       {/* Full-width wrapper: 32px top & bottom padding, responsive padding on mobile */}
       <div className="w-full max-w-[1280px] px-4 md:px-0 pt-4 md:pt-8 pb-4 md:pb-8 flex flex-col flex-1 overflow-hidden">
-        {/* Header: logo + tabs row with "List Of Genres" */}
+        {/* Header: logo + tabs row */}
         <NavigationHeader />
 
-        {/* Main Content: 2-column 50/50 split on desktop, responsive 3-step feed on mobile */}
-        <main className="flex-1 flex flex-col md:flex-row gap-4 md:gap-8 pt-4 overflow-hidden">
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <div className="h-full flex flex-col md:flex-row gap-8">
-              {/* Left Column: Globe or RegionView */}
-              <div className={`flex-1 overflow-y-auto custom-scrollbar ${showLeftOnMobile ? "block" : "hidden md:block"}`}>
-                {activeTab === "map" ? (
-                  <div className="w-full h-full flex items-center justify-center p-2">
-                    <Globe className="w-full max-w-[350px] sm:max-w-[480px] aspect-square" />
-                  </div>
-                ) : (
-                  <RegionView />
-                )}
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col pt-4 overflow-hidden">
+          {activeTab === "map" ? (
+            /* MAP ROUTE: Centered 3D Globe only across all viewports */
+            <div className="w-full h-full flex items-center justify-center overflow-hidden p-2">
+              <Globe className="w-full max-w-[360px] sm:max-w-[480px] aspect-square" />
+            </div>
+          ) : (
+            /* REGION ROUTE: Dual 50/50 column on desktop, 3-step feed on mobile */
+            <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-8 overflow-hidden">
+              {/* Left Column: RegionView */}
+              <div
+                className={`flex-1 overflow-y-auto custom-scrollbar ${
+                  selectedGenre ? "hidden md:block" : "block"
+                }`}
+              >
+                <RegionView />
               </div>
 
               {/* Right Column: GenreListPanel */}
-              <div className={`flex-1 overflow-y-auto custom-scrollbar ${showRightOnMobile ? "block" : "hidden md:block"}`}>
+              <div
+                className={`flex-1 overflow-y-auto custom-scrollbar ${
+                  selectedGenre ? "block" : "hidden md:block"
+                }`}
+              >
                 <GenreListPanel />
               </div>
             </div>
-          </div>
+          )}
         </main>
       </div>
 
