@@ -94,9 +94,7 @@ const REGION_STRUCTURE: RegionGroup[] = [
 ]
 
 export function RegionView() {
-  const setSelectedRegion = useGenreStore((state) => state.setSelectedRegion)
-  const selectedGenre = useGenreStore((state) => state.selectedGenre)
-  const regionFilter = useGenreStore((state) => state.regionFilter)
+  const { setSelectedRegion, selectedGenre, regionFilter } = useGenreStore()
 
   const [expandedContinents, setExpandedContinents] = useState<Record<string, boolean>>({
     Asia: true,

@@ -11,9 +11,7 @@ import { useNuqsUrlSync } from "@/hooks/useNuqsUrlSync"
 function MainExplorer() {
   useNuqsUrlSync()
 
-  const activeTab = useGenreStore((state) => state.activeTab)
-  const currentTrack = useGenreStore((state) => state.currentTrack)
-  const isPlaying = useGenreStore((state) => state.isPlaying)
+  const { activeTab, currentTrack, isPlaying, selectedGenre } = useGenreStore()
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // Sync HTML5 audio element with Zustand store playback state
@@ -29,14 +27,11 @@ function MainExplorer() {
     }
   }, [isPlaying, currentTrack])
 
-  const selectedGenre = useGenreStore((state) => state.selectedGenre)
-
-  // Clean mobile view logic:
-  // - Map tab: Always show Globe (showLeftOnMobile = true)
-  // - Region tab with selectedGenre: Show GenreListPanel (showRightOnMobile = true)
-  // - Region tab without selectedGenre: Show RegionView (showLeftOnMobile = true)
-  const showLeftOnMobile = activeTab === "map" || !selectedGenre
-  const showRightOnMobile = activeTab === "region" && Boolean(selectedGenre)
+  // Unified mobile view visibility logic:
+  // - When a region is selected (from 3D Map pin or Region directory), show GenreListPanel (showRightOnMobile = true)
+  // - When no region is selected, show Left Column (Globe on Map tab, RegionView on Region tab)
+  const showLeftOnMobile = !selectedGenre
+  const showRightOnMobile = Boolean(selectedGenre)
 
   return (
     <div className="h-screen bg-white text-black flex flex-col items-center overflow-hidden">
@@ -45,35 +40,31 @@ function MainExplorer() {
         {/* Header: logo + tabs row */}
         <NavigationHeader />
 
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col pt-4 overflow-hidden">
-          {activeTab === "map" ? (
-            /* MAP ROUTE: Centered 3D Globe only across all viewports */
-            <div className="w-full h-full flex items-center justify-center overflow-hidden p-2">
-              <Globe className="w-full max-w-[360px] sm:max-w-[480px] aspect-square" />
-            </div>
-          ) : (
-            /* REGION ROUTE: Dual 50/50 column on desktop, 3-step feed on mobile */
-            <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-8 overflow-hidden">
-              {/* Left Column: RegionView */}
-              <div
-                className={`flex-1 overflow-y-auto custom-scrollbar ${
-                  selectedGenre ? "hidden md:block" : "block"
-                }`}
-              >
-                <RegionView />
+        {/* Main Content: Dual 50/50 column layout on desktop, responsive mobile view */}
+        <main className="flex-1 flex flex-col md:flex-row gap-4 md:gap-8 pt-4 overflow-hidden">
+          {/* Left Column: Globe (Map Tab) or RegionView (Region Tab) */}
+          <div
+            className={`flex-1 overflow-y-auto custom-scrollbar ${
+              showLeftOnMobile ? "block" : "hidden md:block"
+            }`}
+          >
+            {activeTab === "map" ? (
+              <div className="w-full h-full flex items-center justify-start overflow-hidden p-2">
+                <Globe className="w-full max-w-[360px] sm:max-w-[480px] aspect-square" />
               </div>
+            ) : (
+              <RegionView />
+            )}
+          </div>
 
-              {/* Right Column: GenreListPanel */}
-              <div
-                className={`flex-1 overflow-y-auto custom-scrollbar ${
-                  selectedGenre ? "block" : "hidden md:block"
-                }`}
-              >
-                <GenreListPanel />
-              </div>
-            </div>
-          )}
+          {/* Right Column: GenreListPanel (Always present on desktop!) */}
+          <div
+            className={`flex-1 overflow-y-auto custom-scrollbar ${
+              showRightOnMobile ? "block" : "hidden md:block"
+            }`}
+          >
+            <GenreListPanel />
+          </div>
         </main>
       </div>
 

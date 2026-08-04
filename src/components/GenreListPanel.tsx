@@ -15,18 +15,25 @@ import {
 } from "lucide-react";
 
 export function GenreListPanel() {
-  const genreList = useGenreStore((state) => state.activeGenreList);
-  const selectedRegionName = useGenreStore((state) => state.selectedRegionName);
-  const selectedGenre = useGenreStore((state) => state.selectedGenre);
-  const selectedContinent = useGenreStore((state) => state.selectedContinent);
-  const playingGenre = useGenreStore((state) => state.playingGenre);
-  const currentTrack = useGenreStore((state) => state.currentTrack);
-  const isPlaying = useGenreStore((state) => state.isPlaying);
-  const isLoadingAudio = useGenreStore((state) => state.isLoadingAudio);
-  const playGenreTrack = useGenreStore((state) => state.playGenreTrack);
-  const togglePlayPause = useGenreStore((state) => state.togglePlayPause);
-  const stopAudio = useGenreStore((state) => state.stopAudio);
-  const setSelectedRegion = useGenreStore((state) => state.setSelectedRegion);
+  // Layout & Region state from Zustand store
+  const {
+    activeTab,
+    activeGenreList: genreList,
+    selectedGenre,
+    selectedContinent,
+    setSelectedRegion,
+  } = useGenreStore();
+
+  // Audio player state & actions from Zustand store
+  const {
+    playingGenre,
+    currentTrack,
+    isPlaying,
+    isLoadingAudio,
+    playGenreTrack,
+    togglePlayPause,
+    stopAudio,
+  } = useGenreStore();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchingApi, setIsSearchingApi] = useState(false);
@@ -100,7 +107,9 @@ export function GenreListPanel() {
             className="flex items-center gap-1 text-[12px] font-medium text-neutral-600 hover:text-black shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Regions</span>
+            <span>
+              {activeTab === "map" ? "Back to Map" : "Back to Regions"}
+            </span>
           </button>
 
           {/* Search Bar on Mobile */}
@@ -202,7 +211,8 @@ export function GenreListPanel() {
               Select a Region or Search
             </h3>
             <p className="text-[12px] leading-5 max-w-[256px]">
-              Explore genres by picking a location on the left or typing in the search bar above.
+              Explore genres by picking a location on the left or typing in the
+              search bar above.
             </p>
           </div>
         ) : (

@@ -5,20 +5,20 @@ import { useGenreStore } from "@/store/useGenreStore";
 import { Search } from "lucide-react";
 
 export function NavigationHeader() {
-  const activeTab = useGenreStore((state) => state.activeTab);
-  const setActiveTab = useGenreStore((state) => state.setActiveTab);
-
-  const selectedGenre = useGenreStore((state) => state.selectedGenre);
-  const selectedContinent = useGenreStore((state) => state.selectedContinent);
-  const regionFilter = useGenreStore((state) => state.regionFilter);
-  const setRegionFilter = useGenreStore((state) => state.setRegionFilter);
-
-  const stopAudio = useGenreStore((state) => state.stopAudio);
-  const setSelectedRegion = useGenreStore((state) => state.setSelectedRegion);
+  const {
+    activeTab,
+    setActiveTab,
+    selectedGenre,
+    selectedContinent,
+    regionFilter,
+    setRegionFilter,
+    stopAudio,
+    setSelectedRegion,
+  } = useGenreStore();
 
   return (
     <header className="w-full bg-white text-black select-none">
-      {/* Top Header Row: Logo Badge on Left + Map / Region Tabs on Right */}
+      {/* Top Header Row: Logo Badge on Left + Mobile Tabs on Right (< md) */}
       <div className="flex items-center justify-between mb-4">
         {/* Left: Brand Badge Logo */}
         <div className="p-1.5 pl-2 pr-0 bg-black w-fit border">
@@ -37,14 +37,12 @@ export function NavigationHeader() {
           </div>
         </div>
 
-        {/* Right: Map / Region Tab Buttons (Aligned with Logo) */}
-        <div className="flex items-center gap-6 text-[16px] tracking-[-0.8px]">
+        {/* Right: Mobile-Only Map / Region Tab Buttons (Aligned with Logo) */}
+        <div className="md:hidden flex items-center gap-6 text-[16px] tracking-[-0.8px]">
           <button
             type="button"
-            onClick={() => {
-              setActiveTab("map");
-            }}
-            className={`transition-colors outline-none focus:outline-none focus-visible:outline-none ${
+            onClick={() => setActiveTab("map")}
+            className={`transition-colors outline-none focus:outline-none ${
               activeTab === "map"
                 ? "text-black underline underline-offset-4 decoration-2 font-medium"
                 : "text-[#545454] hover:text-black font-normal"
@@ -54,12 +52,8 @@ export function NavigationHeader() {
           </button>
           <button
             type="button"
-            onClick={() => {
-              setActiveTab("region");
-              stopAudio();
-              setSelectedRegion("", [], "");
-            }}
-            className={`transition-colors outline-none focus:outline-none focus-visible:outline-none ${
+            onClick={() => setActiveTab("region")}
+            className={`transition-colors outline-none focus:outline-none ${
               activeTab === "region"
                 ? "text-black underline underline-offset-4 decoration-2 font-medium"
                 : "text-[#545454] hover:text-black font-normal"
@@ -70,10 +64,37 @@ export function NavigationHeader() {
         </div>
       </div>
 
-      {/* Second Row: Search bar & Dotted Separator */}
+      {/* Main Header Rows */}
       <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-        {/* Left Column: Search Bar (when in Region mode) or Dotted Line */}
-        <div className="flex-1 border-b border-dotted border-[#545454] pb-3 flex items-center justify-between min-h-[36px]">
+        {/* Left Column Header Controls */}
+        <div className="flex-1 border-b border-dotted border-[#545454] pb-3 md:pb-4 flex items-center justify-end md:justify-between gap-4 min-h-[36px]">
+          {/* Desktop Tabs (>= md) */}
+          <div className="hidden md:flex items-center gap-6 text-[16px] tracking-[-0.8px]">
+            <button
+              type="button"
+              onClick={() => setActiveTab("map")}
+              className={`transition-colors outline-none focus:outline-none ${
+                activeTab === "map"
+                  ? "text-black underline underline-offset-4 decoration-2 font-medium"
+                  : "text-[#545454] hover:text-black font-normal"
+              }`}
+            >
+              Map
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("region")}
+              className={`transition-colors outline-none focus:outline-none ${
+                activeTab === "region"
+                  ? "text-black underline underline-offset-4 decoration-2 font-medium"
+                  : "text-[#545454] hover:text-black font-normal"
+              }`}
+            >
+              Region
+            </button>
+          </div>
+
+          {/* Search Bar (shown when Region active) */}
           {activeTab === "region" ? (
             <div className="relative w-full max-w-[220px] sm:max-w-[256px]">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -88,22 +109,20 @@ export function NavigationHeader() {
           ) : null}
         </div>
 
-        {/* Right Column: List Of Genres heading with selected genre — Only shown on Region tab */}
-        {activeTab === "region" && (
-          <div className="flex-1 border-b border-dotted border-[#545454] pb-3 flex items-center justify-between gap-4">
-            <h2 className="text-[16px] font-medium text-black leading-[20px] tracking-[-0.8px] shrink-0">
-              List Of Genres
-            </h2>
-            {selectedGenre && (
-              <span className="text-[13px] sm:text-[14px] text-[#545454] font-normal tracking-[-0.28px] truncate">
-                <strong className="font-bold text-black">{selectedGenre}</strong>
-                {selectedContinent && selectedContinent !== selectedGenre ? (
-                  <span> ({selectedContinent})</span>
-                ) : null}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Right Column Header: List Of Genres heading with selected genre */}
+        <div className="flex-1 border-b border-dotted border-[#545454] pb-3 md:pb-4 flex items-center justify-between gap-4">
+          <h2 className="text-[16px] font-medium text-black leading-[20px] tracking-[-0.8px] shrink-0">
+            List Of Genres
+          </h2>
+          {selectedGenre && (
+            <span className="text-[13px] sm:text-[14px] text-[#545454] font-normal tracking-[-0.28px] truncate">
+              <strong className="font-bold text-black">{selectedGenre}</strong>
+              {selectedContinent && selectedContinent !== selectedGenre ? (
+                <span> ({selectedContinent})</span>
+              ) : null}
+            </span>
+          )}
+        </div>
       </div>
     </header>
   )

@@ -144,7 +144,7 @@ interface GlobeProps {
 }
 
 export function Globe({ className = "" }: GlobeProps) {
-  const setSelectedRegion = useGenreStore((state) => state.setSelectedRegion)
+  const { setSelectedRegion } = useGenreStore()
 
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
