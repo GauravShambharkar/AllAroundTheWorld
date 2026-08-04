@@ -96,7 +96,7 @@ export function NavigationHeader() {
 
           {/* Search Bar (shown when Region active) */}
           {activeTab === "region" ? (
-            <div className="relative w-full max-w-[220px] sm:max-w-[256px]">
+            <div className="relative w-full max-w-[180px] sm:max-w-[256px]">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input
                 type="text"
@@ -110,7 +110,11 @@ export function NavigationHeader() {
         </div>
 
         {/* Right Column Header: List Of Genres heading with selected genre */}
-        <div className="flex-1 border-b border-dotted border-[#545454] pb-3 md:pb-4 flex items-center justify-between gap-4">
+        <div
+          className={`flex-1 border-b border-dotted border-[#545454] pb-3 md:pb-4 flex items-center justify-between gap-4 ${
+            activeTab === "map" ? "hidden md:flex" : "flex"
+          }`}
+        >
           <h2 className="text-[16px] font-medium text-black leading-[20px] tracking-[-0.8px] shrink-0">
             List Of Genres
           </h2>
