@@ -21,6 +21,8 @@ export function GenreListPanel() {
     activeGenreList: genreList,
     selectedGenre,
     selectedContinent,
+    genreFilter,
+    setGenreFilter,
     setSelectedRegion,
   } = useGenreStore();
 
@@ -42,6 +44,7 @@ export function GenreListPanel() {
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value;
     setSearchQuery(q);
+    setGenreFilter(q);
 
     if (!q.trim()) return;
 
@@ -90,8 +93,15 @@ export function GenreListPanel() {
     setVisibleLimit(80);
   }, [genreList]);
 
-  const visibleGenres = genreList.slice(0, visibleLimit);
-  const hasMore = visibleLimit < genreList.length;
+  // Filter genre list by genreFilter from header
+  const filteredGenres = React.useMemo(() => {
+    const q = (genreFilter || searchQuery).trim().toLowerCase();
+    if (!q) return genreList;
+    return genreList.filter((g) => g.toLowerCase().includes(q));
+  }, [genreList, genreFilter, searchQuery]);
+
+  const visibleGenres = filteredGenres.slice(0, visibleLimit);
+  const hasMore = visibleLimit < filteredGenres.length;
 
   return (
     <div className="w-full h-full flex flex-col gap-4 select-none">
@@ -111,34 +121,8 @@ export function GenreListPanel() {
               {activeTab === "map" ? "Back to Map" : "Back to Regions"}
             </span>
           </button>
-
-          {/* Search Bar on Mobile */}
-          <div className="relative w-full max-w-[180px]">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Search genres..."
-              className="w-full pl-7 pr-2 py-1 text-[11px] outline-none bg-transparent border-b border-neutral-200 focus:border-black transition-colors"
-            />
-          </div>
         </div>
       )}
-
-      {/* Desktop Search Bar — right-aligned */}
-      <div className="hidden md:flex justify-end">
-        <div className="relative w-full max-w-[256px]">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search genres..."
-            className="w-full pl-8 pr-4 py-2 text-[12px] outline-none bg-transparent border-b border-neutral-200 focus:border-black transition-colors"
-          />
-        </div>
-      </div>
 
       {/* Active Audio Playing Banner (Every Noise at Once Style Instant Player) */}
       {playingGenre && (
