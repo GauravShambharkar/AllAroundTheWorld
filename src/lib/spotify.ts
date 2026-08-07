@@ -51,6 +51,24 @@ export async function getSpotifyAppToken(): Promise<string | null> {
 }
 
 const GENRE_SIGNATURE_EXEMPLARS: Record<string, string> = {
+  // Malayalam Modern -> Sai Abhyankkar
+  "malayalam modern & pop": "Sai Abhyankkar Katchi Sera",
+  "malayalam modern": "Sai Abhyankkar Katchi Sera",
+  "malayalam pop": "Sai Abhyankkar Katchi Sera",
+  "malayalam sopanam & mappila pattu": "Sai Abhyankkar Aasa Kooda",
+  "malayalam indie": "Sai Abhyankkar Katchi Sera",
+  "malayalam": "Sai Abhyankkar Katchi Sera",
+
+  // Tamil Modern -> Anirudh Ravichander
+  "tamil modern & pop": "Anirudh Ravichander Hukum Naa Ready",
+  "tamil modern": "Anirudh Ravichander Hukum Naa Ready",
+  "tamil pop": "Anirudh Ravichander Hukum",
+  "tamil gaana & kuthu beats": "Anirudh Ravichander Hukum Kuthu",
+  "kollywood tamil cinema music": "Anirudh Ravichander Hukum Naa Ready",
+  "tamil hip-hop": "Anirudh Ravichander Hiphop Tamizha",
+  "tamil rock": "Anirudh Ravichander Hukum",
+  "tamil": "Anirudh Ravichander Hukum",
+
   // South Asia & India Signature Exemplars
   "hindustani classical raga": "Ravi Shankar Raga Pandit",
   "hindustani classical": "Ravi Shankar Raga",
@@ -70,13 +88,13 @@ const GENRE_SIGNATURE_EXEMPLARS: Record<string, string> = {
   "rabindra sangeet": "Rabindra Sangeet Shreya Ghoshal",
   "desi hip-hop & gully rap": "DIVINE Gully Boy Mere Gully Mein",
   "desi hip-hop": "DIVINE Gully Boy",
-  "tamil gaana & kuthu beats": "Rowdy Baby Dhanush Kuthu",
-  "kollywood tamil cinema music": "AR Rahman Tamil Classics",
   "telugu folk & tollywood melodies": "Ramuloo Ramulaa Tollywood",
-  "malayalam sopanam & mappila pattu": "Jivamshamayi Malayalam",
   "punjabi pop & modern beats": "AP Dhillon Diljit Dosanjh Punjabi Pop",
 
   // Iconic World Genre Signature Exemplars
+  "slap house": "R3HAB All Around The World La La La",
+  "slap house / brazilian bass": "R3HAB All Around The World La La La",
+  "slap house edm": "R3HAB Lullaby",
   "reggae": "Bob Marley One Love",
   "dancehall": "Sean Paul Get Busy",
   "samba": "Mas Que Nada Sergio Mendes Samba",
@@ -102,9 +120,16 @@ export async function searchSpotifyTracks(query: string): Promise<SpotifyTrack[]
   const token = await getSpotifyAppToken()
   let spotifyItems: any[] = []
 
-  // Check if there is a signature exemplar search term for this query
-  const cleanQ = query.toLowerCase().trim()
-  const searchQuery = GENRE_SIGNATURE_EXEMPLARS[cleanQ] || query
+  // 1. Clean query & strip parenthetical notes / numbers
+  const rawQ = query.replace(/^\d+(\.\d+)?\.\s*/, "").trim()
+  const cleanQ = rawQ.toLowerCase().trim()
+  const strippedQ = cleanQ.replace(/\s*\([^)]*\)/g, "").replace(/\//g, " ").trim()
+
+  // 2. Signature Exemplar Resolution
+  const searchQuery =
+    GENRE_SIGNATURE_EXEMPLARS[cleanQ] ||
+    GENRE_SIGNATURE_EXEMPLARS[strippedQ] ||
+    rawQ
 
   if (token) {
     try {
@@ -118,7 +143,7 @@ export async function searchSpotifyTracks(query: string): Promise<SpotifyTrack[]
       if (res.ok) {
         const data = await res.json()
         const rawItems = data.tracks?.items || []
-        // Sort tracks by popularity score descending to get top-quality iconic recordings
+        // Sort tracks by popularity score descending
         spotifyItems = rawItems.sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
       }
     } catch (err) {
@@ -136,10 +161,9 @@ export async function searchSpotifyTracks(query: string): Promise<SpotifyTrack[]
     spotifyUrl: item.external_urls?.spotify || "#",
   }))
 
-  // Find the highest-popularity track that has a valid preview_url from Spotify
+  // Check if Spotify returned a track with valid previewUrl
   const trackWithPreview = tracks.find((t) => t.previewUrl)
   if (trackWithPreview) {
-    // Put the best track with preview first
     const bestIndex = tracks.indexOf(trackWithPreview)
     if (bestIndex > 0) {
       tracks.splice(bestIndex, 1)
@@ -148,38 +172,52 @@ export async function searchSpotifyTracks(query: string): Promise<SpotifyTrack[]
     return tracks
   }
 
-  // Fallback: Query Apple Music / iTunes Search API for high-bitrate 256kbps audio preview of the top track
-  try {
-    const iTunesRes = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&media=music&limit=5`
-    )
-    if (iTunesRes.ok) {
-      const iTunesData = await iTunesRes.json()
-      const iResults = iTunesData.results || []
+  // 3. Resilient Fallback: Query iTunes Search API for 256kbps audio preview
+  const searchTermsToTry = [searchQuery, strippedQ, `${strippedQ} music`]
+  if (cleanQ.includes("malayalam")) {
+    searchTermsToTry.push("Sai Abhyankkar Katchi Sera", "Sai Abhyankkar Aasa Kooda", "Sai Abhyankkar")
+  }
+  if (cleanQ.includes("tamil")) {
+    searchTermsToTry.push("Anirudh Ravichander Hukum", "Anirudh Ravichander Naa Ready", "Anirudh Ravichander")
+  }
+  if (cleanQ.includes("slap house")) {
+    searchTermsToTry.push("R3HAB All Around The World", "R3HAB Lullaby", "R3HAB Rock My Body", "R3HAB")
+  }
 
-      if (iResults.length > 0) {
-        // Pick the top result from iTunes
-        const iTrack = iResults[0]
-        const authenticAudioUrl = iTrack.previewUrl
+  for (const term of searchTermsToTry) {
+    if (!term || term.length < 2) continue
+    try {
+      const iTunesRes = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=5`
+      )
+      if (iTunesRes.ok) {
+        const iTunesData = await iTunesRes.json()
+        const iResults = iTunesData.results || []
 
-        if (tracks.length > 0) {
-          // Attach high-fidelity audio preview to the top popular Spotify track result
-          tracks[0].previewUrl = authenticAudioUrl
-        } else {
-          // Return iTunes result if Spotify returned no tracks
-          tracks.push({
-            id: String(iTrack.trackId),
-            title: iTrack.trackName,
-            artist: iTrack.artistName,
-            albumArt: iTrack.artworkUrl100?.replace("100x100bb", "300x300bb") || "",
-            previewUrl: authenticAudioUrl,
-            spotifyUrl: iTrack.trackViewUrl || "#",
-          })
+        if (iResults.length > 0) {
+          const iTrack = iResults[0]
+          const authenticAudioUrl = iTrack.previewUrl
+
+          if (authenticAudioUrl) {
+            if (tracks.length > 0) {
+              tracks[0].previewUrl = authenticAudioUrl
+            } else {
+              tracks.push({
+                id: String(iTrack.trackId),
+                title: iTrack.trackName,
+                artist: iTrack.artistName,
+                albumArt: iTrack.artworkUrl100?.replace("100x100bb", "300x300bb") || "",
+                previewUrl: authenticAudioUrl,
+                spotifyUrl: iTrack.trackViewUrl || "#",
+              })
+            }
+            return tracks
+          }
         }
       }
+    } catch (err) {
+      console.error(`iTunes Audio Preview fetch error for term "${term}":`, err)
     }
-  } catch (err) {
-    console.error("iTunes Audio Preview fetch error:", err)
   }
 
   return tracks

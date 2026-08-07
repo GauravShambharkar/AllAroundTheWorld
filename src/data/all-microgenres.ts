@@ -451,6 +451,28 @@ export const ALL_MICROGENRES: Microgenre[] = [
     query: "telugu folk janapada geethalu",
   },
   {
+    id: "malayalam-pop-modern",
+    name: "Malayalam Modern & Pop",
+    region: "Asia",
+    categories: ["Asia", "South Asia", "South India"],
+    subregion: "South India",
+    country: "India",
+    lat: 9.9312,
+    lng: 76.2673,
+    query: "Sai Abhyankkar Katchi Sera",
+  },
+  {
+    id: "tamil-pop-modern",
+    name: "Tamil Modern & Pop",
+    region: "Asia",
+    categories: ["Asia", "South Asia", "South India"],
+    subregion: "South India",
+    country: "India",
+    lat: 13.0827,
+    lng: 80.2707,
+    query: "Anirudh Ravichander Hukum",
+  },
+  {
     id: "malayalam-sopana",
     name: "Malayalam Sopanam & Mappila Pattu",
     region: "Asia",
@@ -639,6 +661,17 @@ export const ALL_MICROGENRES: Microgenre[] = [
   },
 
   // EUROPE
+  {
+    id: "slap-house",
+    name: "Slap House",
+    region: "Europe",
+    categories: ["Europe", "EDM", "Modern Europe", "Western Europe", "Electronic", "House"],
+    subregion: "Modern Europe",
+    country: "Netherlands/Germany",
+    lat: 52.3676,
+    lng: 4.9041,
+    query: "R3HAB All Around The World La La La",
+  },
   {
     id: "hard-techno",
     name: "Berlin Hard Techno",

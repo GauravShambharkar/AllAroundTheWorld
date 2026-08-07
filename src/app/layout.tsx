@@ -16,6 +16,21 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "All Around The World — Music Genre Explorer",
   description: "Explore music genres around the globe by region and map",
+  openGraph: {
+    title: "All Around The World — Music Genre Explorer",
+    description: "Explore music genres around the globe by region and map",
+    images: [
+      {
+        url: "/preview.png/",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "en_IN",
+    type: "website",
+    siteName: "All Around The World — Music Genre Explorer",
+    url: "https://aatwgenres.vercel.app",
+  },
 };
 
 export default function RootLayout({
