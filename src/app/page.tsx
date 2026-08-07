@@ -1,31 +1,19 @@
 "use client"
 
-import React, { useEffect, useRef, Suspense } from "react"
+import React, { Suspense } from "react"
 import { NavigationHeader } from "@/components/NavigationHeader"
 import { Globe } from "@/components/ui/cobe-globe"
 import { RegionView } from "@/components/RegionView"
 import { GenreListPanel } from "@/components/GenreListPanel"
-import { useGenreStore } from "@/store/useGenreStore"
+import { useNavigationStore } from "@/features/navigation/store/useNavigationStore"
+import { useAudioSync } from "@/features/audio/hooks/useAudioSync"
 import { useNuqsUrlSync } from "@/hooks/useNuqsUrlSync"
 
 function MainExplorer() {
   useNuqsUrlSync()
 
-  const { activeTab, currentTrack, isPlaying, selectedGenre } = useGenreStore()
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  // Sync HTML5 audio element with Zustand store playback state
-  useEffect(() => {
-    if (!audioRef.current) return
-
-    if (isPlaying && currentTrack?.previewUrl) {
-      audioRef.current.play().catch((err) => {
-        console.warn("Autoplay audio blocked or error:", err)
-      })
-    } else {
-      audioRef.current.pause()
-    }
-  }, [isPlaying, currentTrack])
+  const { activeTab, selectedGenre } = useNavigationStore()
+  const { audioRef, currentTrack, handleEnded } = useAudioSync()
 
   // Unified mobile view visibility logic:
   // - When a region is selected (from 3D Map pin or Region directory), show GenreListPanel (showRightOnMobile = true)
@@ -73,7 +61,7 @@ function MainExplorer() {
         <audio
           ref={audioRef}
           src={currentTrack.previewUrl}
-          onEnded={() => useGenreStore.getState().stopAudio()}
+          onEnded={handleEnded}
         />
       )}
     </div>

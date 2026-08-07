@@ -17,7 +17,8 @@ interface AudioState {
   isPlaying: boolean
   isLoadingAudio: boolean
 
-  playGenreTrack: (genreName: string) => Promise<void>
+  playGenreTrack: (genreName?: string, randomize?: boolean) => Promise<void>
+  randomizeGenreTrack: () => Promise<void>
   togglePlayPause: () => void
   stopAudio: () => void
 }
@@ -28,10 +29,13 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   isPlaying: false,
   isLoadingAudio: false,
 
-  playGenreTrack: async (genreName: string) => {
-    const cleanName = genreName.replace(/^\d+(\.\d+)?\.\s*/, "").trim()
+  playGenreTrack: async (genreName?: string, randomize: boolean = false) => {
+    const targetGenre = genreName || get().playingGenre
+    if (!targetGenre) return
 
-    if (get().playingGenre === cleanName && get().isPlaying) {
+    const cleanName = targetGenre.replace(/^\d+(\.\d+)?\.\s*/, "").trim()
+
+    if (genreName && get().playingGenre === cleanName && get().isPlaying && !randomize) {
       set({ isPlaying: false })
       return
     }
@@ -42,13 +46,12 @@ export const useAudioStore = create<AudioState>((set, get) => ({
       isPlaying: false,
     })
 
-    const matched = ALL_MICROGENRES.find(
-      (g) => g.name.toLowerCase() === cleanName.toLowerCase() || g.id.toLowerCase() === cleanName.toLowerCase()
-    )
-    const searchQuery = matched ? matched.query : cleanName
+    const searchQuery = cleanName
 
     try {
-      const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(searchQuery)}`)
+      const res = await fetch(
+        `/api/spotify/search?q=${encodeURIComponent(searchQuery)}&random=${randomize ? "true" : "false"}`
+      )
       const data = await res.json()
       const tracks = data.tracks || []
 
@@ -79,6 +82,13 @@ export const useAudioStore = create<AudioState>((set, get) => ({
         isLoadingAudio: false,
         isPlaying: false,
       })
+    }
+  },
+
+  randomizeGenreTrack: async () => {
+    const current = get().playingGenre
+    if (current) {
+      await get().playGenreTrack(current, true)
     }
   },
 

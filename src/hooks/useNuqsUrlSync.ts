@@ -2,7 +2,7 @@
 
 import { useQueryState, parseAsString, parseAsStringEnum } from "nuqs";
 import { useEffect, useRef } from "react";
-import { useGenreStore } from "@/store/useGenreStore";
+import { useNavigationStore } from "@/features/navigation/store/useNavigationStore";
 import { getGenresForRegion } from "@/data/music-genres";
 
 export function useNuqsUrlSync() {
@@ -14,13 +14,13 @@ export function useNuqsUrlSync() {
   const [continentParam, setContinentParam] = useQueryState("continent", parseAsString);
   const [qParam, setQParam] = useQueryState("q", parseAsString);
 
-  const activeTab = useGenreStore((state) => state.activeTab);
-  const setActiveTab = useGenreStore((state) => state.setActiveTab);
-  const selectedGenre = useGenreStore((state) => state.selectedGenre);
-  const selectedContinent = useGenreStore((state) => state.selectedContinent);
-  const setSelectedRegion = useGenreStore((state) => state.setSelectedRegion);
-  const regionFilter = useGenreStore((state) => state.regionFilter);
-  const setRegionFilter = useGenreStore((state) => state.setRegionFilter);
+  const activeTab = useNavigationStore((state) => state.activeTab);
+  const setActiveTab = useNavigationStore((state) => state.setActiveTab);
+  const selectedGenre = useNavigationStore((state) => state.selectedGenre);
+  const selectedContinent = useNavigationStore((state) => state.selectedContinent);
+  const setSelectedRegion = useNavigationStore((state) => state.setSelectedRegion);
+  const regionFilter = useNavigationStore((state) => state.regionFilter);
+  const setRegionFilter = useNavigationStore((state) => state.setRegionFilter);
 
   const isHydratedRef = useRef(false);
 

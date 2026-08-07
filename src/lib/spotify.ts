@@ -1,3 +1,5 @@
+import { ALL_MICROGENRES } from "@/data/all-microgenres"
+
 export interface SpotifyTrack {
   id: string
   title: string
@@ -50,109 +52,159 @@ export async function getSpotifyAppToken(): Promise<string | null> {
   }
 }
 
-const GENRE_SIGNATURE_EXEMPLARS: Record<string, string> = {
-  // Malayalam Modern -> Sai Abhyankkar
-  "malayalam modern & pop": "Sai Abhyankkar Katchi Sera",
-  "malayalam modern": "Sai Abhyankkar Katchi Sera",
-  "malayalam pop": "Sai Abhyankkar Katchi Sera",
-  "malayalam sopanam & mappila pattu": "Sai Abhyankkar Aasa Kooda",
-  "malayalam indie": "Sai Abhyankkar Katchi Sera",
-  "malayalam": "Sai Abhyankkar Katchi Sera",
+/**
+ * Curated Artist Pools per Genre / Region
+ * Guarantees 100% authentic, relatable preview tracks when shuffling
+ */
+export const GENRE_ARTIST_POOLS: Record<string, string[]> = {
+  // Punjabi & North India
+  "punjabi pop & modern beats": ["AP Dhillon", "Diljit Dosanjh", "Karan Aujla", "Shubh", "Sidhu Moose Wala", "Guru Randhawa", "Gippy Grewal", "Harrdy Sandhu"],
+  "punjabi bhangra": ["Panjabi MC", "Malkit Singh", "Gurdas Maan", "Bally Sagoo", "Jassi Sidhu", "Jazzy B"],
+  "pakistan & northwest": ["Nusrat Fateh Ali Khan", "Rahat Fateh Ali Khan", "Atif Aslam", "Ali Zafar", "Abida Parveen", "Coke Studio Pakistan"],
 
-  // Tamil Modern -> Anirudh Ravichander
-  "tamil modern & pop": "Anirudh Ravichander Hukum Naa Ready",
-  "tamil modern": "Anirudh Ravichander Hukum Naa Ready",
-  "tamil pop": "Anirudh Ravichander Hukum",
-  "tamil gaana & kuthu beats": "Anirudh Ravichander Hukum Kuthu",
-  "kollywood tamil cinema music": "Anirudh Ravichander Hukum Naa Ready",
-  "tamil hip-hop": "Anirudh Ravichander Hiphop Tamizha",
-  "tamil rock": "Anirudh Ravichander Hukum",
-  "tamil": "Anirudh Ravichander Hukum",
+  // Malayalam & South India
+  "malayalam modern & pop": ["Sai Abhyankkar", "Hesham Abdul Wahab", "Sushin Shyam", "Shaan Rahman", "Job Kurian", "Gopi Sundar", "Deepak Dev"],
+  "malayalam modern": ["Sai Abhyankkar", "Hesham Abdul Wahab", "Sushin Shyam", "Shaan Rahman", "Gopi Sundar"],
+  "malayalam pop": ["Sai Abhyankkar", "Hesham Abdul Wahab", "Sushin Shyam"],
+  "malayalam sopanam & mappila pattu": ["Sai Abhyankkar", "Hesham Abdul Wahab", "KJ Yesudas"],
+  "malayalam indie": ["When Chai Met Toast", "Thaikkudam Bridge", "Avial", "Masala Coffee"],
+  "malayalam": ["Sai Abhyankkar", "Hesham Abdul Wahab", "Sushin Shyam", "KJ Yesudas"],
 
-  // South Asia & India Signature Exemplars
-  "hindustani classical raga": "Ravi Shankar Raga Pandit",
-  "hindustani classical": "Ravi Shankar Raga",
-  "carnatic vocal & veena": "MS Subbulakshmi Carnatic",
-  "carnatic": "MS Subbulakshmi Carnatic",
-  "qawwali sufi music": "Nusrat Fateh Ali Khan Rashk E Qamar",
-  "qawwali": "Nusrat Fateh Ali Khan",
-  "punjabi bhangra": "Panjabi MC Mundian To Bach Ke",
-  "bhangra": "Panjabi MC Mundian To Bach Ke",
-  "bollywood & filmi classics": "Lata Mangeshkar Kishore Kumar Golden Hits",
-  "bollywood": "A R Rahman Bollywood Classics",
-  "marathi lavani & powada": "Apsara Aali Lavani Natarang",
-  "marathi lavani": "Apsara Aali Lavani",
-  "gujarati garba & dandiya raas": "Falguni Pathak Chogada Garba",
-  "garba": "Falguni Pathak Garba",
-  "bengali baul & bhatiali folk": "Baul Song Bengal Anupam Roy",
-  "rabindra sangeet": "Rabindra Sangeet Shreya Ghoshal",
-  "desi hip-hop & gully rap": "DIVINE Gully Boy Mere Gully Mein",
-  "desi hip-hop": "DIVINE Gully Boy",
-  "telugu folk & tollywood melodies": "Ramuloo Ramulaa Tollywood",
-  "punjabi pop & modern beats": "AP Dhillon Diljit Dosanjh Punjabi Pop",
+  // Tamil & Kollywood
+  "tamil modern & pop": ["Anirudh Ravichander", "AR Rahman Tamil", "Yuvan Shankar Raja", "G V Prakash", "Santhosh Narayanan", "D Imman", "Hiphop Tamizha"],
+  "tamil modern": ["Anirudh Ravichander", "AR Rahman Tamil", "Yuvan Shankar Raja", "Santhosh Narayanan"],
+  "tamil pop": ["Anirudh Ravichander", "AR Rahman Tamil", "Yuvan Shankar Raja"],
+  "tamil gaana & kuthu beats": ["Anirudh Ravichander", "Gana Bala", "Deva Tamil", "Santhosh Narayanan"],
+  "kollywood tamil cinema music": ["Anirudh Ravichander", "AR Rahman Tamil", "Yuvan Shankar Raja", "Ilaiyaraaja"],
+  "tamil hip-hop": ["Anirudh Ravichander", "Hiphop Tamizha", "Arivu", "Yogi B"],
+  "tamil rock": ["Anirudh Ravichander", "Agam", "Avial"],
+  "tamil": ["Anirudh Ravichander", "AR Rahman Tamil", "Yuvan Shankar Raja", "Ilaiyaraaja"],
 
-  // Iconic World Genre Signature Exemplars
-  "slap house": "R3HAB All Around The World La La La",
-  "slap house / brazilian bass": "R3HAB All Around The World La La La",
-  "slap house edm": "R3HAB Lullaby",
-  "reggae": "Bob Marley One Love",
-  "dancehall": "Sean Paul Get Busy",
-  "samba": "Mas Que Nada Sergio Mendes Samba",
-  "bossa nova": "The Girl From Ipanema Stan Getz",
-  "tango": "Astor Piazzolla Libertango",
-  "city pop (japan)": "Mariya Takeuchi Plastic Love",
-  "city pop": "Mariya Takeuchi Plastic Love",
-  "k-pop (korea)": "BTS Dynamite K-Pop",
-  "k-pop": "BTS Dynamite",
-  "hard techno": "Charlotte de Witte Techno",
-  "dark techno": "Amelie Lens Techno",
-  "flamenco (spain)": "Paco de Lucia Entre Dos Aguas",
-  "flamenco": "Paco de Lucia Entre Dos Aguas",
-  "afro (afrobeats)": "Burna Boy Last Last",
-  "afrobeats": "Burna Boy Last Last",
-  "amapiano": "Tyler ICU Mnike Amapiano",
-  "old school hip-hop": "Grandmaster Flash The Message Hip Hop",
-  "blues": "BB King The Thrill Is Gone",
-  "jazz": "Miles Davis So What Jazz",
+  // Other India & South Asia
+  "desi hip-hop & gully rap": ["DIVINE", "Naezy", "Raftaar", "KR$NA", "MC Stan", "Seedhe Maut", "EPR"],
+  "desi hip-hop": ["DIVINE", "Naezy", "Raftaar", "KR$NA", "MC Stan"],
+  "bollywood & filmi classics": ["Lata Mangeshkar", "Kishore Kumar", "Asha Bhosle", "RD Burman", "Mohammed Rafi"],
+  "bollywood": ["A R Rahman", "Arijit Singh", "Pritam", "Shreya Ghoshal", "Vishal Shekhar"],
+  "hindustani classical raga": ["Ravi Shankar", "Hariprasad Chaurasia", "Bhimsen Joshi", "Zakir Hussain"],
+  "hindustani classical": ["Ravi Shankar", "Hariprasad Chaurasia", "Bhimsen Joshi"],
+  "qawwali sufi music": ["Nusrat Fateh Ali Khan", "Rahat Fateh Ali Khan", "Sabri Brothers", "Abida Parveen"],
+  "qawwali": ["Nusrat Fateh Ali Khan", "Rahat Fateh Ali Khan", "Sabri Brothers"],
+  "marathi lavani & powada": ["Apsara Aali Lavani", "Ajay Atul", "Adarsh Shinde"],
+  "gujarati garba & dandiya raas": ["Falguni Pathak", "Aditya Gadhvi", "Kinjal Dave"],
+  "bengali baul & bhatiali folk": ["Anupam Roy", "Purna Das Baul", "Rupam Islam"],
+  "rabindra sangeet": ["Rabindra Sangeet Shreya Ghoshal", "Babul Supriyo"],
+
+  // Slap House & EDM
+  "slap house": ["R3HAB", "Dynoro", "ViZE", "Topic", "Gaullin", "LUM!X", "MEDUZA"],
+  "slap house / brazilian bass": ["R3HAB", "Alok", "Dynoro", "ViZE", "Vintage Culture"],
+  "slap house edm": ["R3HAB", "Dynoro", "ViZE", "Topic"],
+  "hard techno": ["Charlotte de Witte", "Amelie Lens", "I Hate Models", "Kobosil", "Klangkuenstler"],
+  "dark techno": ["Amelie Lens", "Charlotte de Witte", "Paula Temple", "Rebekah", "Adam Beyer"],
+
+  // Latin / Caribbean / Reggae
+  "reggae": ["Bob Marley", "Damian Marley", "Chronixx", "Protoje", "Koffee", "Burning Spear", "Buju Banton"],
+  "dancehall": ["Sean Paul", "Vybz Kartel", "Popcaan", "Beenie Man", "Shaggy", "Bounty Killer"],
+  "samba": ["Sergio Mendes", "Jorge Ben Jor", "Seu Jorge", "Beth Carvalho", "Zeca Pagodinho"],
+  "bossa nova": ["Stan Getz", "Joao Gilberto", "Tom Jobim", "Astrud Gilberto"],
+  "tango": ["Astor Piazzolla", "Carlos Gardel", "Gotan Project", "Bajofondo"],
+
+  // East Asia
+  "city pop (japan)": ["Mariya Takeuchi", "Miki Matsubara", "Tatsuro Yamashita", "Anri", "Junko Ohashi"],
+  "city pop": ["Mariya Takeuchi", "Miki Matsubara", "Tatsuro Yamashita", "Anri"],
+  "k-pop (korea)": ["BTS", "BLACKPINK", "NewJeans", "TWICE", "Stray Kids", "EXO", "SEVENTEEN"],
+  "k-pop": ["BTS", "BLACKPINK", "NewJeans", "TWICE", "Stray Kids"],
+
+  // Global Iconic
+  "old school hip-hop": ["Grandmaster Flash", "Run DMC", "Sugarhill Gang", "Eric B & Rakim", "Public Enemy"],
+  "hip-hop": ["Kendrick Lamar", "2Pac", "Notorious BIG", "Nas", "J Cole", "Wu-Tang Clan", "Outkast", "50 Cent"],
+  "blues": ["BB King", "Muddy Waters", "Buddy Guy", "Robert Johnson", "Howlin Wolf"],
+  "jazz": ["Miles Davis", "John Coltrane", "Thelonious Monk", "Duke Ellington", "Chet Baker"],
+  "flamenco (spain)": ["Paco de Lucia", "Camaron de la Isla", "Vicente Amigo", "Tomatito"],
+  "flamenco": ["Paco de Lucia", "Camaron de la Isla", "Vicente Amigo"],
+  "afro (afrobeats)": ["Burna Boy", "Wizkid", "Davido", "Asake", "Rema", "Tiwa Savage"],
+  "afrobeats": ["Burna Boy", "Wizkid", "Davido", "Asake", "Rema"],
+  "amapiano": ["Tyler ICU", "Kabza De Small", "DJ Maphorisa", "Focalistic", "Uncle Waffles"],
 }
 
-export async function searchSpotifyTracks(query: string): Promise<SpotifyTrack[]> {
+// Global western pop stars list to prevent accidental bleeding into regional queries
+const DISALLOWED_REGIONAL_BLEED = ["drake", "adele", "khalid", "taylor swift", "ed sheeran", "justin bieber", "maroon 5"]
+
+export async function searchSpotifyTracks(query: string, randomize: boolean = false): Promise<SpotifyTrack[]> {
   const token = await getSpotifyAppToken()
   let spotifyItems: any[] = []
 
-  // 1. Clean query & strip parenthetical notes / numbers
+  // Clean input query & strip parenthetical notes / numbers
   const rawQ = query.replace(/^\d+(\.\d+)?\.\s*/, "").trim()
   const cleanQ = rawQ.toLowerCase().trim()
   const strippedQ = cleanQ.replace(/\s*\([^)]*\)/g, "").replace(/\//g, " ").trim()
 
-  // 2. Signature Exemplar Resolution
-  const searchQuery =
-    GENRE_SIGNATURE_EXEMPLARS[cleanQ] ||
-    GENRE_SIGNATURE_EXEMPLARS[strippedQ] ||
-    rawQ
+  // Find metadata from ALL_MICROGENRES for region/country fallback
+  const matchedGenre = ALL_MICROGENRES.find(
+    (g) => g.name.toLowerCase() === cleanQ || g.id.toLowerCase() === cleanQ || g.name.toLowerCase() === strippedQ
+  )
 
+  const isRegional =
+    matchedGenre?.region === "Asia" ||
+    matchedGenre?.region === "Africa" ||
+    matchedGenre?.region === "South America" ||
+    matchedGenre?.region === "Caribbean" ||
+    cleanQ.includes("punjabi") ||
+    cleanQ.includes("malayalam") ||
+    cleanQ.includes("tamil") ||
+    cleanQ.includes("hindi") ||
+    cleanQ.includes("bollywood") ||
+    cleanQ.includes("garba") ||
+    cleanQ.includes("qawwali")
+
+  // Determine query list based on genre artist pools & metadata
+  const artistPool = GENRE_ARTIST_POOLS[cleanQ] || GENRE_ARTIST_POOLS[strippedQ]
+
+  let searchTermsToTry: string[] = []
+
+  if (artistPool && artistPool.length > 0) {
+    if (randomize) {
+      // Pick random artists from pool
+      const shuffledPool = [...artistPool].sort(() => 0.5 - Math.random())
+      searchTermsToTry = shuffledPool.map((artist) => `${artist} ${strippedQ}`)
+    } else {
+      searchTermsToTry = artistPool.map((artist) => `${artist} ${strippedQ}`)
+    }
+  }
+
+  // Add default matched queries
+  if (matchedGenre?.query) {
+    searchTermsToTry.push(matchedGenre.query)
+  }
+  searchTermsToTry.push(rawQ, `${strippedQ} ${matchedGenre?.country || matchedGenre?.subregion || ""}`.trim())
+
+  // Deduplicate search terms
+  searchTermsToTry = Array.from(new Set(searchTermsToTry.filter(Boolean)))
+
+  // 1. Try Spotify API
   if (token) {
-    try {
-      const endpoint = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=15`
-      const res = await fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+    for (const term of searchTermsToTry.slice(0, 3)) {
+      try {
+        const endpoint = `https://api.spotify.com/v1/search?q=${encodeURIComponent(term)}&type=track&limit=15`
+        const res = await fetch(endpoint, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
 
-      if (res.ok) {
-        const data = await res.json()
-        const rawItems = data.tracks?.items || []
-        // Sort tracks by popularity score descending
-        spotifyItems = rawItems.sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
+        if (res.ok) {
+          const data = await res.json()
+          const rawItems = data.tracks?.items || []
+          if (rawItems.length > 0) {
+            spotifyItems = rawItems
+            break
+          }
+        }
+      } catch (err) {
+        console.error("Spotify API Search error:", err)
       }
-    } catch (err) {
-      console.error("Spotify API Search error:", err)
     }
   }
 
   // Format Spotify results
-  const tracks: SpotifyTrack[] = spotifyItems.map((item: any) => ({
+  let tracks: SpotifyTrack[] = spotifyItems.map((item: any) => ({
     id: item.id,
     title: item.name,
     artist: item.artists.map((a: any) => a.name).join(", "),
@@ -161,63 +213,69 @@ export async function searchSpotifyTracks(query: string): Promise<SpotifyTrack[]
     spotifyUrl: item.external_urls?.spotify || "#",
   }))
 
-  // Check if Spotify returned a track with valid previewUrl
-  const trackWithPreview = tracks.find((t) => t.previewUrl)
-  if (trackWithPreview) {
-    const bestIndex = tracks.indexOf(trackWithPreview)
-    if (bestIndex > 0) {
-      tracks.splice(bestIndex, 1)
-      tracks.unshift(trackWithPreview)
-    }
-    return tracks
+  // Filter out disallowed western pop bleed for regional queries
+  if (isRegional) {
+    tracks = tracks.filter(
+      (t) => !DISALLOWED_REGIONAL_BLEED.some((bad) => t.artist.toLowerCase().includes(bad))
+    )
   }
 
-  // 3. Resilient Fallback: Query iTunes Search API for 256kbps audio preview
-  const searchTermsToTry = [searchQuery, strippedQ, `${strippedQ} music`]
-  if (cleanQ.includes("malayalam")) {
-    searchTermsToTry.push("Sai Abhyankkar Katchi Sera", "Sai Abhyankkar Aasa Kooda", "Sai Abhyankkar")
+  const validTracks = tracks.filter((t) => t.previewUrl)
+
+  if (validTracks.length > 0) {
+    if (randomize && validTracks.length > 1) {
+      const randomIndex = Math.floor(Math.random() * validTracks.length)
+      const selected = validTracks[randomIndex]
+      return [selected, ...validTracks.filter((_, i) => i !== randomIndex)]
+    }
+    return validTracks
   }
-  if (cleanQ.includes("tamil")) {
-    searchTermsToTry.push("Anirudh Ravichander Hukum", "Anirudh Ravichander Naa Ready", "Anirudh Ravichander")
-  }
-  if (cleanQ.includes("slap house")) {
-    searchTermsToTry.push("R3HAB All Around The World", "R3HAB Lullaby", "R3HAB Rock My Body", "R3HAB")
-  }
+
+  // 2. Resilient Fallback: iTunes Search API
+  let iTunesTracks: SpotifyTrack[] = []
 
   for (const term of searchTermsToTry) {
     if (!term || term.length < 2) continue
     try {
       const iTunesRes = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=5`
+        `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=15`
       )
       if (iTunesRes.ok) {
         const iTunesData = await iTunesRes.json()
         const iResults = iTunesData.results || []
 
-        if (iResults.length > 0) {
-          const iTrack = iResults[0]
-          const authenticAudioUrl = iTrack.previewUrl
+        for (const iTrack of iResults) {
+          const artistLower = (iTrack.artistName || "").toLowerCase()
+          if (isRegional && DISALLOWED_REGIONAL_BLEED.some((bad) => artistLower.includes(bad))) {
+            continue // Skip western pop bleed
+          }
 
-          if (authenticAudioUrl) {
-            if (tracks.length > 0) {
-              tracks[0].previewUrl = authenticAudioUrl
-            } else {
-              tracks.push({
-                id: String(iTrack.trackId),
-                title: iTrack.trackName,
-                artist: iTrack.artistName,
-                albumArt: iTrack.artworkUrl100?.replace("100x100bb", "300x300bb") || "",
-                previewUrl: authenticAudioUrl,
-                spotifyUrl: iTrack.trackViewUrl || "#",
-              })
-            }
-            return tracks
+          if (iTrack.previewUrl) {
+            iTunesTracks.push({
+              id: String(iTrack.trackId),
+              title: iTrack.trackName,
+              artist: iTrack.artistName,
+              albumArt: iTrack.artworkUrl100?.replace("100x100bb", "300x300bb") || "",
+              previewUrl: iTrack.previewUrl,
+              spotifyUrl: iTrack.trackViewUrl || "#",
+            })
           }
         }
+
+        if (iTunesTracks.length > 0) break
       }
     } catch (err) {
       console.error(`iTunes Audio Preview fetch error for term "${term}":`, err)
     }
+  }
+
+  if (iTunesTracks.length > 0) {
+    if (randomize && iTunesTracks.length > 1) {
+      const randIdx = Math.floor(Math.random() * iTunesTracks.length)
+      const chosen = iTunesTracks[randIdx]
+      return [chosen, ...iTunesTracks.filter((_, i) => i !== randIdx)]
+    }
+    return iTunesTracks
   }
 
   return tracks
